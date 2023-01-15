@@ -1,6 +1,6 @@
 FROM alpine:3.16.0
-LABEL maintainer="JulianPrieber"
-LABEL description="LittleLink Custom Docker"
+LABEL maintainer="JGyarbij"
+LABEL description="GLinks - A simple, self-hosted link page"
 
 EXPOSE 80 443
 
