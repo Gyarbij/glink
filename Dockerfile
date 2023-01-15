@@ -1,6 +1,6 @@
 FROM alpine:3.16.0
-LABEL maintainer="JGyarbij"
-LABEL description="GLinks - A simple, self-hosted link page"
+LABEL maintainer="Gyarbij - Chono N"
+LABEL description="GLinks - A simple, self-hosted link page powered by LittleLink."
 
 EXPOSE 80 443
 
