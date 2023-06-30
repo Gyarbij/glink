@@ -1,6 +1,6 @@
-FROM alpine:3.16.0
+FROM alpine:3.18.2
 LABEL maintainer="JulianPrieber"
-LABEL description="LittleLink Custom Docker"
+LABEL description="LinkStack Docker"
 
 EXPOSE 80 443
 
@@ -9,34 +9,35 @@ RUN apk --no-cache --update \
     add apache2 \
     apache2-ssl \
     curl \
-    php8-apache2 \
-    php8-bcmath \
-    php8-bz2 \
-    php8-calendar \
-    php8-common \
-    php8-ctype \
-    php8-curl \
-    php8-dom \
-    php8-fileinfo \
-    php8-gd \
-    php8-iconv \
-    php8-json \
-    php8-mbstring \
-    php8-mysqli \
-    php8-mysqlnd \
-    php8-openssl \
-    php8-pdo_mysql \
-    php8-pdo_pgsql \
-    php8-pdo_sqlite \
-    php8-phar \
-    php8-session \
-    php8-xml \
-    php8-tokenizer \
-    php8-zip \
+    php82-apache2 \
+    php82-bcmath \
+    php82-bz2 \
+    php82-calendar \
+    php82-common \
+    php82-ctype \
+    php82-curl \
+    php82-dom \
+    php82-fileinfo \
+    php82-gd \
+    php82-iconv \
+    php82-json \
+    php82-mbstring \
+    php82-mysqli \
+    php82-mysqlnd \
+    php82-openssl \
+    php82-pdo_mysql \
+    php82-pdo_pgsql \
+    php82-pdo_sqlite \
+    php82-phar \
+    php82-session \
+    php82-xml \
+    php82-tokenizer \
+    php82-zip \
+    php82-xmlwriter \
     tzdata \
     && mkdir /htdocs
 
-COPY littlelink-custom /htdocs
+COPY linkstack /htdocs
 RUN chown -R apache:apache /htdocs
 RUN find /htdocs -type d -print0 | xargs -0 chmod 0755
 RUN find /htdocs -type f -print0 | xargs -0 chmod 0644
@@ -44,6 +45,21 @@ RUN find /htdocs -type f -print0 | xargs -0 chmod 0644
 COPY --chmod=0755 docker-entrypoint.sh /usr/local/bin/
 
 HEALTHCHECK CMD curl -f http://localhost -A "HealthCheck" || exit 1
+
+# Enable compression
+RUN sed -i '/LoadModule mime_module/s/^#//g' /etc/apache2/httpd.conf \
+    && sed -i '/LoadModule deflate_module/s/^#//g' /etc/apache2/httpd.conf \
+    && sed -i '/AddOutputFilterByType text\/html/s/^#//g' /etc/apache2/httpd.conf \
+    && sed -i '/AddOutputFilterByType text\/plain/s/^#//g' /etc/apache2/httpd.conf \
+    && sed -i '/AddOutputFilterByType text\/xml/s/^#//g' /etc/apache2/httpd.conf \
+    && sed -i '/AddOutputFilterByType application\/javascript/s/^#//g' /etc/apache2/httpd.conf \
+    && sed -i '/AddOutputFilterByType text\/css/s/^#//g' /etc/apache2/httpd.conf \
+    && sed -i '/AddOutputFilterByType image\/svg\+xml/s/^#//g' /etc/apache2/httpd.conf \
+    && sed -i '/AddOutputFilterByType application\/x-font-ttf/s/^#//g' /etc/apache2/httpd.conf \
+    && sed -i '/AddOutputFilterByType font\/opentype/s/^#//g' /etc/apache2/httpd.conf \
+    && sed -i '/AddOutputFilterByType image\/jpeg/s/^#//g' /etc/apache2/httpd.conf \
+    && sed -i '/AddOutputFilterByType image\/png/s/^#//g' /etc/apache2/httpd.conf \
+    && sed -i '/AddOutputFilterByType image\/gif/s/^#//g' /etc/apache2/httpd.conf
 
 # Forward Apache access and error logs to Docker's log collector.
 # Optional last line adds extra verbosity with for example:
@@ -53,7 +69,12 @@ RUN ln -sf /dev/stdout /var/www/logs/access.log \
  && ln -sf /dev/stderr /var/www/logs/ssl-access.log
 # && ln -sf /dev/stderr /var/www/logs/ssl-error.log
 
+# Enable mod_deflate for text compression
+RUN sed -i 's/#LoadModule deflate_module/LoadModule deflate_module/' /etc/apache2/httpd.conf \
+    && sed -i 's/#LoadModule filter_module/LoadModule filter_module/' /etc/apache2/httpd.conf \
+    && echo 'AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/json' >> /etc/apache2/httpd.conf
+
 # Set console entry path
-WORKDIR /htdocs/littlelink
+WORKDIR /htdocs
 
 CMD ["docker-entrypoint.sh"]
